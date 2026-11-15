@@ -109,6 +109,8 @@ export function HomePage() {
 
     <section className="px-4 pb-12 md:px-8 md:pb-16"><figure className="relative mx-auto max-w-7xl overflow-hidden rounded-2xl"><img loading="lazy" src={journey.url} alt="An airplane approaching a runway beyond distant mountains" className="h-64 w-full object-cover md:h-[390px]" /><figcaption className="absolute inset-x-0 bottom-0 bg-image-caption p-5 font-heading text-xl font-semibold text-primary-foreground md:p-8 md:text-2xl">Your next opportunity can take you further.</figcaption></figure></section>
 
+    <RecruitmentRoles />
+
     <section className="bg-muted/50 py-16 md:py-20"><div className="mx-auto max-w-7xl px-4 md:px-8"><div className="mb-8 flex items-end justify-between gap-4"><SectionHeading title="Latest jobs" text="Explore trusted opportunities selected by our recruitment team." className="mb-0" /><Link to="/jobs" className="hidden sm:block"><Button variant="outline" className="gap-2">All jobs<ArrowRight className="size-4" /></Button></Link></div>{jobs.length ? <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">{jobs.slice(0, 4).map((job) => <JobCard key={job.id} job={job} />)}</div> : <div className="rounded-xl border border-border bg-card px-5 py-12 text-center"><BriefcaseBusiness className="mx-auto size-9 text-muted-foreground/50" /><p className="mt-3 text-sm text-muted-foreground">No current listings. Register your profile to hear about suitable opportunities.</p><Link to="/job-seekers" className="mt-4 inline-flex"><Button variant="outline">Register as a job seeker</Button></Link></div>}<div className="mt-6 text-center sm:hidden"><Link to="/jobs"><Button variant="outline">View all jobs</Button></Link></div></div></section>
 
     <TestimonialsSection />
@@ -121,6 +123,45 @@ export function HomePage() {
 
     <section className="bg-primary py-14 text-primary-foreground md:py-16"><div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-7 px-4 sm:flex-row sm:items-center md:px-8"><div><h2 className="mt-2 max-w-2xl font-heading text-2xl font-bold sm:text-3xl">Looking for work or looking to hire?</h2><p className="mt-3 max-w-xl text-sm text-primary-foreground/80">Fawzie is here to guide the next step safely and clearly.</p></div><div className="flex flex-wrap gap-3"><Link to="/job-seekers"><Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">{t("cta.register")}<ArrowRight className="size-4" /></Button></Link><Link to="/employers"><Button variant="outline" className="border-primary-foreground/40 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20">Hire workers</Button></Link></div></div></section>
   </>;
+}
+
+const recruitmentRoles = [
+  { title: "Cleaners", alt: "Cleaner mopping an office lobby" },
+  { title: "Motorcycle riders", alt: "Helmeted courier standing beside a motorcycle" },
+  { title: "Domestic workers", alt: "Domestic worker making a bed" },
+  { title: "Construction workers", alt: "Construction worker wearing a hard hat and high-visibility vest" },
+  { title: "Drivers", alt: "Professional driver at the wheel of a van" },
+];
+
+function RecruitmentRoles() {
+  return (
+    <section className="border-t border-border py-12 md:py-16" aria-labelledby="recruitment-roles-heading">
+      <div className="mx-auto max-w-7xl px-4 md:px-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <h2 id="recruitment-roles-heading" className="font-heading text-3xl font-semibold tracking-tight md:text-4xl">Explore job roles</h2>
+          <Button asChild variant="outline"><Link to="/jobs">Browse current jobs<ArrowRight className="size-4 rtl:rotate-180" /></Link></Button>
+        </div>
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {recruitmentRoles.map(({ title, alt }, index) => (
+            <li key={title} className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
+              <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+                <img
+                  src="/images/roles/recruitment-roles.webp"
+                  alt={alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute top-0 left-0 w-[500%] max-w-none"
+                  style={{ transform: `translateX(-${index * 20}%)` }}
+                />
+              </div>
+              <h3 className="px-3 py-4 font-heading text-sm font-semibold sm:text-base">{title}</h3>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs text-muted-foreground">AI-generated images illustrate the roles.</p>
+      </div>
+    </section>
+  );
 }
 
 type Testimonial = { id: string; name: string; role: string; country: string; quote: string; rating: number; is_sample: boolean };

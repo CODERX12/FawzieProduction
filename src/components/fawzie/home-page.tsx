@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND, CATEGORIES, COUNTRIES, type Job } from "@/lib/fawzie";
 import { useLanguage } from "@/components/fawzie/providers";
 import { formatSalary, SectionHeading, TrustNote } from "@/components/fawzie/ui";
-const journey = { url: "/images/pascal-meier-UYiesSO4FiM-unsplash.jpg" };
 
 const steps = [
   { icon: UserRoundCheck, title: "Register", text: "Create your profile and tell us about your skills and experience." },
@@ -75,8 +74,6 @@ export function HomePage() {
     </section>
 
     <section className="py-16 md:py-20"><div className="mx-auto max-w-7xl px-4 md:px-8"><SectionHeading title="How it works" text="From registration to your first day at work — we guide you every step of the way." /><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{steps.map(({ icon: Icon, title, text }) => <div key={title} className="rounded-xl border border-border bg-card p-5 sm:p-6"><span className="mb-5 grid size-10 place-items-center rounded-lg bg-secondary text-primary"><Icon className="size-5" /></span><h3 className="font-heading font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{text}</p></div>)}</div></div></section>
-
-    <section className="px-4 pb-12 md:px-8 md:pb-16"><figure className="relative mx-auto max-w-7xl overflow-hidden rounded-2xl"><img loading="lazy" src={journey.url} alt="An airplane approaching a runway beyond distant mountains" className="h-64 w-full object-cover md:h-[390px]" /><figcaption className="absolute inset-x-0 bottom-0 bg-image-caption p-5 font-heading text-xl font-semibold text-primary-foreground md:p-8 md:text-2xl">Your next opportunity can take you further.</figcaption></figure></section>
 
     <RecruitmentRoles />
 

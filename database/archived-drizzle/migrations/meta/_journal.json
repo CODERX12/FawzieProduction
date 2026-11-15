@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794471931492,
+      "tag": "0000_fawzie_roles_and_admin_check",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794471971430,
+      "tag": "0001_fawzie_recruitment_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794471973705,
+      "tag": "0002_fawzie_private_documents_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794472374656,
+      "tag": "0003_fawzie_first_admin_bootstrap",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794472435969,
+      "tag": "0004_fawzie_private_document_paths",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794473408199,
+      "tag": "0005_disable_public_first_admin_claim",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794475272676,
+      "tag": "0006_create_auth_profiles",
+      "breakpoints": true
+    }
+  ]
+}

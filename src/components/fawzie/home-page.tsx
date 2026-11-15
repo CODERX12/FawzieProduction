@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, BadgeCheck, BriefcaseBusiness, CheckCircle2, ChevronLeft, ChevronRight, Globe2, HeartHandshake, MapPin, ShieldCheck, Star, Users, UserRoundCheck, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,28 +46,27 @@ export function HomePage() {
   }, []);
 
   return <>
-    <section className="home-hero border-b border-border">
-      <div className="mx-auto grid max-w-7xl items-center gap-9 px-5 py-10 sm:px-8 lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:py-16">
-        <div className="min-w-0">
-          <a href={BRAND.licenceUrl} target="_blank" rel="noreferrer" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+    <CareerCarousel>
+      <div className="mx-auto flex min-h-[min(40rem,85svh)] max-w-7xl items-center px-5 py-16 sm:px-8 lg:py-24">
+        <div className="min-w-0 max-w-2xl">
+          <a href={BRAND.licenceUrl} target="_blank" rel="noreferrer" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-teal-200 underline-offset-4 hover:underline">
             <ShieldCheck className="size-4 shrink-0" />
             Check agency details on NEAIMS
           </a>
           <h1 className="hero-title max-w-xl font-heading font-semibold">{lang === "en" ? content["hero_title"] || t("hero.title") : t("hero.title")}</h1>
-          <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">{lang === "en" ? content["hero_subtitle"] || t("hero.subtitle") : t("hero.subtitle")}</p>
+          <p className="mt-5 max-w-lg text-base leading-relaxed text-white/90 sm:text-lg">{lang === "en" ? content["hero_subtitle"] || t("hero.subtitle") : t("hero.subtitle")}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Button asChild size="lg"><Link to="/jobs">{t("cta.browse")}<ArrowRight className="size-4 rtl:rotate-180" /></Link></Button>
-            <Button asChild variant="outline" size="lg"><Link to="/job-seekers">{t("cta.register")}</Link></Button>
+            <Button asChild variant="outline" size="lg" className="border-white/70 bg-black/25 text-white hover:bg-white hover:text-slate-950"><Link to="/job-seekers">{t("cta.register")}</Link></Button>
           </div>
-          <ul className="mt-7 flex flex-wrap gap-x-4 gap-y-2 border-t border-border pt-5 text-sm text-muted-foreground">
+          <ul className="mt-7 flex flex-wrap gap-x-4 gap-y-2 border-t border-white/30 pt-5 text-sm text-white/90">
             {["No fees before contract", "Verified employers", "Safe migration support"].map((item) => (
-              <li key={item} className="inline-flex items-center gap-1.5"><CheckCircle2 className="size-4 shrink-0 text-primary" />{item}</li>
+              <li key={item} className="inline-flex items-center gap-1.5"><CheckCircle2 className="size-4 shrink-0 text-teal-200" />{item}</li>
             ))}
           </ul>
         </div>
-        <CareerCarousel />
       </div>
-    </section>
+    </CareerCarousel>
 
     <section className="border-b border-border bg-card">
       <div className="mx-auto grid max-w-7xl grid-cols-3 divide-x divide-border px-3 py-3 sm:px-8">
@@ -104,7 +103,7 @@ const careerSlides = [
   { image: "/images/careers/drivers.webp", title: "Professional driving", alt: "A driver seated behind the wheel of a shuttle van" },
 ];
 
-function CareerCarousel() {
+function CareerCarousel({ children }: { children: ReactNode }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -134,22 +133,29 @@ function CareerCarousel() {
 
   return (
     <section aria-label="Explore recruitment careers" aria-roledescription="carousel"
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      onFocusCapture={() => setFocusWithin(true)}
-      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false); }}
-      className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card">
-      <div className="relative aspect-[5/4] overflow-hidden bg-muted sm:aspect-[4/3] lg:aspect-[5/4]" aria-live={playing && !hovered && !focusWithin ? "off" : "polite"}>
-        <img key={slide.image} src={slide.image} alt={slide.alt} fetchPriority={index === 0 ? "high" : "auto"}
-          className="absolute inset-0 size-full object-cover" />
+      className="relative isolate overflow-hidden border-b border-border bg-slate-950 text-white">
+      <div className="pointer-events-none absolute inset-0 -z-20">
+        {careerSlides.map((item, position) => (
+          <img key={item.image} src={item.image} alt={position === index ? item.alt : ""}
+            aria-hidden={position !== index} fetchPriority={position === 0 ? "high" : "low"}
+            className={`absolute inset-0 size-full object-cover motion-safe:transition-opacity motion-safe:duration-700 ${position === index ? "opacity-100" : "opacity-0"}`} />
+        ))}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-4">
-        <span className="text-sm font-semibold">{slide.title}</span>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-slate-950/70 lg:bg-transparent lg:bg-linear-to-r lg:from-slate-950/95 lg:via-slate-950/75 lg:to-slate-950/20 rtl:lg:bg-linear-to-l" />
+      {children}
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-5 pb-5 sm:px-8">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-950/80 px-3 py-1"
+          onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocusWithin(true)}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false); }} >
+        <span className="text-sm font-semibold" aria-live={playing && !hovered && !focusWithin ? "off" : "polite"}>{slide.title}</span>
         <div className="flex items-center gap-1">
-          <Button type="button" size="sm" variant="ghost" onClick={() => setPlaying(!playing)}>{playing ? "Pause" : "Play"}</Button>
-          <Button type="button" size="icon" variant="ghost" aria-label="Previous slide" onClick={() => move(-1)}><ChevronLeft className="size-4" /></Button>
-          <span className="text-xs tabular-nums text-muted-foreground">{index + 1} / {careerSlides.length}</span>
-          <Button type="button" size="icon" variant="ghost" aria-label="Next slide" onClick={() => move(1)}><ChevronRight className="size-4" /></Button>
+          <Button type="button" size="sm" variant="ghost" className="hover:bg-white/15 hover:text-white" onClick={() => setPlaying(!playing)}>{playing ? "Pause" : "Play"}</Button>
+          <Button type="button" size="icon" variant="ghost" className="hover:bg-white/15 hover:text-white" aria-label="Previous slide" onClick={() => move(-1)}><ChevronLeft className="size-4" /></Button>
+          <span className="text-xs tabular-nums text-white/80">{index + 1} / {careerSlides.length}</span>
+          <Button type="button" size="icon" variant="ghost" className="hover:bg-white/15 hover:text-white" aria-label="Next slide" onClick={() => move(1)}><ChevronRight className="size-4" /></Button>
         </div>
+      </div>
       </div>
     </section>
   );

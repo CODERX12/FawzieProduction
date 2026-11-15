@@ -94,69 +94,51 @@ export function HomePage() {
   </>;
 }
 
-const careerSlides = [
-  { image: "/images/fawzie-recruitment-hero.webp", title: "Recruitment guidance", alt: "A job seeker and adviser reviewing an application" },
-  { image: "/images/careers/cleaning.webp", title: "Cleaning and facilities", alt: "A cleaner operating a floor scrubber in an office lobby" },
-  { image: "/images/careers/riders.webp", title: "Motorcycle delivery", alt: "A helmeted courier securing a delivery box on a motorcycle" },
-  { image: "/images/careers/domestic.webp", title: "Domestic work", alt: "A domestic worker folding fresh linen" },
-  { image: "/images/careers/construction.webp", title: "Construction", alt: "A construction worker reviewing plans on site" },
-  { image: "/images/careers/drivers.webp", title: "Professional driving", alt: "A driver seated behind the wheel of a shuttle van" },
+const careerImages = [
+  "/images/fawzie-recruitment-hero.webp",
+  "/images/careers/cleaning.webp",
+  "/images/careers/riders.webp",
+  "/images/careers/domestic.webp",
+  "/images/careers/construction.webp",
+  "/images/careers/drivers.webp",
 ];
 
 function CareerCarousel({ children }: { children: ReactNode }) {
   const [index, setIndex] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const [focusWithin, setFocusWithin] = useState(false);
-  const slide = careerSlides[index] ?? careerSlides[0]!;
 
   useEffect(() => {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const sync = () => setPlaying(!preference.matches);
+    let timer: number | undefined;
+
+    const sync = () => {
+      window.clearInterval(timer);
+      if (!preference.matches && !document.hidden) {
+        timer = window.setInterval(() => {
+          setIndex((current) => (current + 1) % careerImages.length);
+        }, 6000);
+      }
+    };
+
     sync();
     preference.addEventListener("change", sync);
-    return () => preference.removeEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.clearInterval(timer);
+      preference.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
   }, []);
 
-  useEffect(() => {
-    if (!playing || hovered || focusWithin) return;
-    const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % careerSlides.length);
-    }, 6000);
-    return () => window.clearInterval(timer);
-  }, [playing, hovered, focusWithin]);
-
-  function move(offset: number) {
-    setPlaying(false);
-    setIndex((current) => (current + offset + careerSlides.length) % careerSlides.length);
-  }
-
   return (
-    <section aria-label="Explore recruitment careers" aria-roledescription="carousel"
-      className="relative isolate overflow-hidden border-b border-border bg-slate-950 text-white">
-      <div className="pointer-events-none absolute inset-0 -z-20">
-        {careerSlides.map((item, position) => (
-          <img key={item.image} src={item.image} alt={position === index ? item.alt : ""}
-            aria-hidden={position !== index} fetchPriority={position === 0 ? "high" : "low"}
+    <section className="relative isolate overflow-hidden border-b border-border bg-slate-950 text-white">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20">
+        {careerImages.map((image, position) => (
+          <img key={image} src={image} alt="" fetchPriority={position === 0 ? "high" : "low"}
             className={`absolute inset-0 size-full object-cover motion-safe:transition-opacity motion-safe:duration-700 ${position === index ? "opacity-100" : "opacity-0"}`} />
         ))}
       </div>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-slate-950/70 lg:bg-transparent lg:bg-linear-to-r lg:from-slate-950/95 lg:via-slate-950/75 lg:to-slate-950/20 rtl:lg:bg-linear-to-l" />
       {children}
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-5 pb-5 sm:px-8">
-        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-950/80 px-3 py-1"
-          onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      onFocusCapture={() => setFocusWithin(true)}
-      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false); }} >
-        <span className="text-sm font-semibold" aria-live={playing && !hovered && !focusWithin ? "off" : "polite"}>{slide.title}</span>
-        <div className="flex items-center gap-1">
-          <Button type="button" size="sm" variant="ghost" className="hover:bg-white/15 hover:text-white" onClick={() => setPlaying(!playing)}>{playing ? "Pause" : "Play"}</Button>
-          <Button type="button" size="icon" variant="ghost" className="hover:bg-white/15 hover:text-white" aria-label="Previous slide" onClick={() => move(-1)}><ChevronLeft className="size-4" /></Button>
-          <span className="text-xs tabular-nums text-white/80">{index + 1} / {careerSlides.length}</span>
-          <Button type="button" size="icon" variant="ghost" className="hover:bg-white/15 hover:text-white" aria-label="Next slide" onClick={() => move(1)}><ChevronRight className="size-4" /></Button>
-        </div>
-      </div>
-      </div>
     </section>
   );
 }

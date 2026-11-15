@@ -132,7 +132,7 @@ function JobSeekersPage() {
     finally { setBusy(false); }
   };
   if (authLoading || loading) return <div className="grid min-h-[50vh] place-items-center"><LoaderCircle className="size-7 animate-spin text-primary" /></div>;
-  if (!session) return <><PageBanner title="Your job seeker account" description="Create an account to register once, update your profile and follow your application progress." /><section className="px-4 py-10"><AccountAccess title="Sign in to continue" description="Your account keeps your profile and application progress private across devices." /></section></>;
+  if (!session) return <><PageBanner image="/images/banners/job-seekers.webp" title="Your job seeker account" description="Create an account to register once, update your profile and follow your application progress." /><section className="px-4 py-10"><AccountAccess title="Sign in to continue" description="Your account keeps your profile and application progress private across devices." /></section></>;
   const progress = ((step + 1) / steps.length) * 100;
   return (
     <AccountWorkspace role="Job seeker" email={session.user.email ?? ""} sections={sections} active={active} onChange={setActive} signOut={signOut}

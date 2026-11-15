@@ -6,14 +6,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { BRAND } from "@/lib/fawzie";
 
-export function PageBanner({ eyebrow, title, description, image, children }: { eyebrow?: string; title: string; description?: string; image?: string; children?: ReactNode }) {
-  return <section className={cn("relative isolate overflow-hidden border-b border-border bg-primary text-primary-foreground", image && "min-h-[250px]")}>
-    {image && <img src={image} alt="" className="absolute inset-0 z-0 size-full object-cover" />}
-    <div className="absolute inset-0 z-10 bg-hero-overlay" />
+export function PageBanner({ eyebrow, title, description, image, children }: { eyebrow?: string; title: string; description?: string; image: string; children?: ReactNode }) {
+  return <section className="relative isolate min-h-[250px] overflow-hidden border-b border-border bg-slate-950 text-white">
+    <img src={image} alt="" fetchPriority="high" className="absolute inset-y-0 end-0 z-0 h-full w-full object-cover object-right md:w-[62%] rtl:object-left" />
+    <div aria-hidden="true" className="absolute inset-0 z-10 bg-slate-950/80 md:bg-transparent md:bg-linear-to-r md:from-slate-950 md:via-slate-950/85 md:to-slate-950/20 rtl:md:bg-linear-to-l" />
     <div className="relative z-20 mx-auto max-w-7xl px-4 py-12 md:px-8 md:py-16">
-      {eyebrow && <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary-foreground/80"><BadgeCheck className="size-4" />{eyebrow}</p>}
+      {eyebrow && <p className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-white/85"><BadgeCheck className="size-4" />{eyebrow}</p>}
       <h1 className="max-w-3xl text-balance font-heading text-4xl font-semibold tracking-tight md:text-5xl">{title}</h1>
-      {description && <p className="mt-4 max-w-2xl text-base leading-relaxed text-primary-foreground/85">{description}</p>}
+      {description && <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/90">{description}</p>}
       {children && <div className="mt-6">{children}</div>}
     </div>
   </section>;

@@ -96,7 +96,7 @@ function EmployersPage() {
     }
   };
   if (accountLoading || loading) return <div className="grid min-h-[50vh] place-items-center"><Clock3 className="size-7 animate-spin text-primary" /></div>;
-  if (!session) return <><PageBanner title="Employer account" description="Create an account to submit hiring requests, update company details and track our response." /><section className="px-4 py-10"><AccountAccess title="Sign in to hire workers" description="Your company requests stay private and can be updated from any device." /></section></>;
+  if (!session) return <><PageBanner image="/images/banners/employers.webp" title="Employer account" description="Create an account to submit hiring requests, update company details and track our response." /><section className="px-4 py-10"><AccountAccess title="Sign in to hire workers" description="Your company requests stay private and can be updated from any device." /></section></>;
   return (
     <AccountWorkspace role="Employer" email={email} sections={sections} active={activeTab} onChange={setActiveTab} signOut={signOut}
       action={<Button size="sm" disabled={busy || loadError} onClick={() => openForm(null)}><Plus className="size-4" />New request</Button>}>

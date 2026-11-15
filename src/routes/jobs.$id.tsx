@@ -15,6 +15,13 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Job } from "@/lib/fawzie";
 import { toast } from "sonner";
 
+const jobBannerImages: Partial<Record<string, string>> = {
+  "Cleaning & Facilities": "/images/careers/cleaning.webp",
+  "Domestic Work": "/images/careers/domestic.webp",
+  Construction: "/images/careers/construction.webp",
+  "Driver / Transport": "/images/careers/drivers.webp",
+};
+
 export const Route = createFileRoute("/jobs/$id")({
   head: () => ({ meta: [
     { title: "Job Details | Fawzie Recruitment" }, { name: "description", content: "Review an opportunity and apply through Fawzie Recruitment." },
@@ -68,7 +75,7 @@ function JobDetailPage() {
   if (!job) return <div className="mx-auto max-w-7xl px-4 py-20 text-center"><BriefcaseBusiness className="mx-auto size-10 text-muted-foreground/50" /><h1 className="mt-4 font-heading text-2xl font-bold">Job not found</h1><p className="mt-2 text-muted-foreground">This listing may have been removed or is no longer available.</p><Link to="/jobs" className="mt-5 inline-flex"><Button>Browse jobs</Button></Link></div>;
 
   return <>
-    <PageBanner eyebrow={job.job_type} title={job.title} description={`${job.location}, ${job.country} · ${job.category}`}>
+    <PageBanner image={jobBannerImages[job.category] ?? "/images/banners/job-seekers.webp"} eyebrow={job.job_type} title={job.title} description={`${job.location}, ${job.country} · ${job.category}`}>
       <div className="mt-5 flex flex-wrap items-center gap-3"><Button onClick={() => setOpen(true)}>{t("cta.apply")}</Button><Button variant="outline" size="icon" aria-label={saved ? "Remove saved job" : "Save job"} className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20" onClick={toggleSaved}><Heart className={`size-4 ${saved ? "fill-destructive text-destructive" : ""}`} /></Button><Button variant="outline" size="icon" aria-label="Copy job link" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20" onClick={() => void navigator.clipboard.writeText(window.location.href).then(() => toast.success("Link copied"))}><Share2 className="size-4" /></Button></div>
     </PageBanner>
     <section className="py-9 md:py-12"><div className="mx-auto grid max-w-7xl gap-7 px-4 md:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)] md:px-8">

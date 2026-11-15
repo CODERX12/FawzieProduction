@@ -65,14 +65,7 @@ export function HomePage() {
             ))}
           </ul>
         </div>
-        <div className="relative isolate aspect-[5/4] overflow-hidden rounded-2xl bg-muted sm:aspect-[4/3] lg:aspect-[5/4]">
-          <img
-            src="/images/fawzie-recruitment-hero.webp"
-            alt="A job seeker and recruitment adviser reviewing an application together"
-            fetchPriority="high"
-            className="absolute inset-0 size-full object-cover"
-          />
-        </div>
+        <CareerCarousel />
       </div>
     </section>
 
@@ -100,6 +93,66 @@ export function HomePage() {
 
     <section className="bg-primary py-14 text-primary-foreground md:py-16"><div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-7 px-4 sm:flex-row sm:items-center md:px-8"><div><h2 className="mt-2 max-w-2xl font-heading text-2xl font-bold sm:text-3xl">Looking for work or looking to hire?</h2><p className="mt-3 max-w-xl text-sm text-primary-foreground/80">Fawzie is here to guide the next step safely and clearly.</p></div><div className="flex flex-wrap gap-3"><Link to="/job-seekers"><Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">{t("cta.register")}<ArrowRight className="size-4" /></Button></Link><Link to="/employers"><Button variant="outline" className="border-primary-foreground/40 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20">Hire workers</Button></Link></div></div></section>
   </>;
+}
+
+const careerSlides = [
+  { image: "/images/fawzie-recruitment-hero.webp", title: "Recruitment guidance", alt: "A job seeker and adviser reviewing an application" },
+  { image: "/images/careers/cleaning.webp", title: "Cleaning and facilities", alt: "A cleaner operating a floor scrubber in an office lobby" },
+  { image: "/images/careers/riders.webp", title: "Motorcycle delivery", alt: "A helmeted courier securing a delivery box on a motorcycle" },
+  { image: "/images/careers/domestic.webp", title: "Domestic work", alt: "A domestic worker folding fresh linen" },
+  { image: "/images/careers/construction.webp", title: "Construction", alt: "A construction worker reviewing plans on site" },
+  { image: "/images/careers/drivers.webp", title: "Professional driving", alt: "A driver seated behind the wheel of a shuttle van" },
+];
+
+function CareerCarousel() {
+  const [index, setIndex] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focusWithin, setFocusWithin] = useState(false);
+  const slide = careerSlides[index] ?? careerSlides[0]!;
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setPlaying(!preference.matches);
+    sync();
+    preference.addEventListener("change", sync);
+    return () => preference.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!playing || hovered || focusWithin) return;
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % careerSlides.length);
+    }, 6000);
+    return () => window.clearInterval(timer);
+  }, [playing, hovered, focusWithin]);
+
+  function move(offset: number) {
+    setPlaying(false);
+    setIndex((current) => (current + offset + careerSlides.length) % careerSlides.length);
+  }
+
+  return (
+    <section aria-label="Explore recruitment careers" aria-roledescription="carousel"
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocusWithin(true)}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocusWithin(false); }}
+      className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="relative aspect-[5/4] overflow-hidden bg-muted sm:aspect-[4/3] lg:aspect-[5/4]" aria-live={playing && !hovered && !focusWithin ? "off" : "polite"}>
+        <img key={slide.image} src={slide.image} alt={slide.alt} fetchPriority={index === 0 ? "high" : "auto"}
+          className="absolute inset-0 size-full object-cover" />
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-4">
+        <span className="text-sm font-semibold">{slide.title}</span>
+        <div className="flex items-center gap-1">
+          <Button type="button" size="sm" variant="ghost" onClick={() => setPlaying(!playing)}>{playing ? "Pause" : "Play"}</Button>
+          <Button type="button" size="icon" variant="ghost" aria-label="Previous slide" onClick={() => move(-1)}><ChevronLeft className="size-4" /></Button>
+          <span className="text-xs tabular-nums text-muted-foreground">{index + 1} / {careerSlides.length}</span>
+          <Button type="button" size="icon" variant="ghost" aria-label="Next slide" onClick={() => move(1)}><ChevronRight className="size-4" /></Button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 const recruitmentRoles = [

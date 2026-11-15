@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowRight, BadgeCheck, BriefcaseBusiness, CheckCircle2, ChevronLeft, ChevronRight, Globe2, HeartHandshake, MapPin, ShieldCheck, Star, Users, UserRoundCheck, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,12 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { BRAND, CATEGORIES, COUNTRIES, type Job } from "@/lib/fawzie";
 import { useLanguage } from "@/components/fawzie/providers";
 import { formatSalary, SectionHeading, TrustNote } from "@/components/fawzie/ui";
-const hero1 = { url: "/images/Bildschirmfoto_2026-11-07_um_10.32.01.png" };
-const hero2 = { url: "/images/Bildschirmfoto_2026-11-07_um_10.30.12.png" };
-const hero3 = { url: "/images/Bildschirmfoto_2026-11-07_um_10.29.55.png" };
 const journey = { url: "/images/pascal-meier-UYiesSO4FiM-unsplash.jpg" };
 
-const heroImages = [hero1.url, hero2.url, hero3.url];
 const steps = [
   { icon: UserRoundCheck, title: "Register", text: "Create your profile and tell us about your skills and experience." },
   { icon: BadgeCheck, title: "Screening", text: "We verify your documents and match your skills to the right role." },
@@ -36,10 +31,8 @@ const metrics: Array<{ icon: LucideIcon; value: string; label: string }> = [
 
 export function HomePage() {
   const { lang, t } = useLanguage();
-  const [activeImage, setActiveImage] = useState(0);
   const [content, setContent] = useState<Record<string, string>>({});
   const [jobs, setJobs] = useState<Job[]>([]);
-  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     let alive = true;
@@ -73,28 +66,12 @@ export function HomePage() {
           </ul>
         </div>
         <div className="relative isolate aspect-[5/4] overflow-hidden rounded-2xl bg-muted sm:aspect-[4/3] lg:aspect-[5/4]">
-          <AnimatePresence initial={false}>
-            <motion.img
-              key={heroImages[activeImage]}
-              src={heroImages[activeImage]}
-              alt="Illustration of overseas recruitment and travel"
-              fetchPriority={activeImage === 0 ? "high" : "auto"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduceMotion ? 0 : 0.4 }}
-              className="absolute inset-0 size-full object-cover"
-            />
-          </AnimatePresence>
-          <div className="absolute inset-x-0 bottom-3 z-10 flex justify-center">
-            <div className="flex rounded-full bg-foreground/85 px-1">
-              {heroImages.map((image, index) => (
-                <button key={image} type="button" onClick={() => setActiveImage(index)} aria-label={`Show image ${index + 1}`} aria-pressed={index === activeImage} className="grid size-9 place-items-center rounded-full">
-                  <span className={`h-1.5 rounded-full bg-background transition-[width,opacity] ${index === activeImage ? "w-4" : "w-1.5 opacity-60"}`} />
-                </button>
-              ))}
-            </div>
-          </div>
+          <img
+            src="/images/fawzie-recruitment-hero.webp"
+            alt="A job seeker and recruitment adviser reviewing an application together"
+            fetchPriority="high"
+            className="absolute inset-0 size-full object-cover"
+          />
         </div>
       </div>
     </section>
@@ -158,7 +135,6 @@ function RecruitmentRoles() {
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-xs text-muted-foreground">AI-generated images illustrate the roles.</p>
       </div>
     </section>
   );

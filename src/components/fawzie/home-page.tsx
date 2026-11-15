@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { supabase } from "@/integrations/supabase/client";
+import { JobImage } from "@/components/fawzie/job-image";
 import { BRAND, CATEGORIES, COUNTRIES, type Job } from "@/lib/fawzie";
 import { useLanguage } from "@/components/fawzie/providers";
 import { formatSalary, SectionHeading, TrustNote } from "@/components/fawzie/ui";
@@ -197,7 +198,7 @@ function TestimonialsSection() {
 }
 
 export function JobCard({ job }: { job: Job }) {
-  return <Link to="/jobs/$id" params={{ id: job.id }} className="group block"><Card className="h-full border-border/80 shadow-none transition-colors group-hover:border-primary/50"><CardHeader className="pb-2"><div className="flex items-center justify-between gap-2"><Badge variant={job.job_type === "Overseas" ? "default" : "secondary"}>{job.job_type}</Badge>{job.is_sample && <Badge variant="outline">Sample</Badge>}</div><h3 className="mt-2 line-clamp-2 font-heading text-base font-semibold group-hover:text-primary">{job.title}</h3></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground"><p className="flex items-center gap-2"><MapPin className="size-4 shrink-0" />{job.location}, {job.country}</p><p className="flex items-center gap-2"><BriefcaseBusiness className="size-4 shrink-0" />{job.category}</p>{job.salary_max && <p className="pt-1 font-semibold text-foreground">{formatSalary(job.currency, job.salary_min, job.salary_max)} / month</p>}</CardContent></Card></Link>;
+  return <Link to="/jobs/$id" params={{ id: job.id }} className="group block"><Card className={`h-full ${job.image_path ? "overflow-hidden py-0 pb-6" : ""} border-border/80 shadow-none transition-colors group-hover:border-primary/50`}>{job.image_path && <JobImage path={job.image_path} className="aspect-video w-full object-cover" />}<CardHeader className="pb-2"><div className="flex items-center justify-between gap-2"><Badge variant={job.job_type === "Overseas" ? "default" : "secondary"}>{job.job_type}</Badge>{job.is_sample && <Badge variant="outline">Sample</Badge>}</div><h3 className="mt-2 line-clamp-2 font-heading text-base font-semibold group-hover:text-primary">{job.title}</h3></CardHeader><CardContent className="space-y-2 text-sm text-muted-foreground"><p className="flex items-center gap-2"><MapPin className="size-4 shrink-0" />{job.location}, {job.country}</p><p className="flex items-center gap-2"><BriefcaseBusiness className="size-4 shrink-0" />{job.category}</p>{job.salary_max && <p className="pt-1 font-semibold text-foreground">{formatSalary(job.currency, job.salary_min, job.salary_max)} / month</p>}</CardContent></Card></Link>;
 }
 
 export function FeaturedJobs({ jobs }: { jobs: Job[] }) {

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { JOB_IMAGE_BUCKET, JOB_IMAGE_LIMIT, JOB_IMAGE_TYPES, JobImage } from "@/components/fawzie/job-image";
 import { AdminAccessManagement } from "@/components/fawzie/admin-access-management";
 import {
   AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -27,14 +28,14 @@ export const Route = createFileRoute("/admin/dashboard")({
   ] }), component: AdminDashboard,
 });
 
-type JobRow = { id: string; title: string; category: string; location: string; country: string; job_type: string; salary_min: number | null; salary_max: number | null; currency: string; description: string; requirements: string; employer: string; posted_at: string; is_published: boolean; is_sample: boolean };
+type JobRow = { image_path: string | null; id: string; title: string; category: string; location: string; country: string; job_type: string; salary_min: number | null; salary_max: number | null; currency: string; description: string; requirements: string; employer: string; posted_at: string; is_published: boolean; is_sample: boolean };
 type AppRow = { id: string; full_name: string; email: string; phone: string; status: string; cover_note: string | null; created_at: string; job_id: string | null; job?: { title: string } | null };
 type SeekerRow = { id: string; full_name: string; email: string; phone: string; skills: string | null; status: string; cv_path: string | null; passport_path: string | null };
 type EmployerRow = { id: string; company_name: string; contact_name: string; email: string; phone: string; roles: string; num_workers: number; location: string; timeline: string | null; notes: string | null; status: string };
 type DistressRow = { id: string; full_name: string; country: string; employer: string | null; situation: string; phone: string; created_at: string };
 type ContentRow = { key: string; value: string };
 type JobForm = Omit<JobRow, "id" | "posted_at">;
-const EMPTY_JOB: JobForm = { title: "", category: CATEGORIES[0], location: "", country: "Kenya", job_type: "Kenya", salary_min: null, salary_max: null, currency: "KES", description: "", requirements: "", employer: "Confidential", is_published: true, is_sample: false };
+const EMPTY_JOB: JobForm = { image_path: null, title: "", category: CATEGORIES[0], location: "", country: "Kenya", job_type: "Kenya", salary_min: null, salary_max: null, currency: "KES", description: "", requirements: "", employer: "Confidential", is_published: true, is_sample: false };
 const APP_STATUSES = ["Received", "Reviewing", "Accepted", "Rejected"];
 const EMPLOYER_STATUSES = ["Received", "Reviewing", "Accepted", "Rejected", "Fulfilled"];
 const ADMIN_TABS = [
@@ -66,6 +67,7 @@ function AdminDashboard() {
   const [jobDialog, setJobDialog] = useState(false);
   const [editing, setEditing] = useState<JobRow | null>(null);
   const [jobForm, setJobForm] = useState<JobForm>({ ...EMPTY_JOB });
+  const [jobImageFile, setJobImageFile] = useState<File | null>(null);
   const [savingJob, setSavingJob] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<JobRow | null>(null);
   const [deletingJob, setDeletingJob] = useState(false);
@@ -109,15 +111,50 @@ function AdminDashboard() {
     return () => { active = false; };
   }, [loading, session, navigate, loadAll]);
 
-  const openNew = () => { setEditing(null); setJobForm({ ...EMPTY_JOB }); setJobDialog(true); };
-  const openEdit = (job: JobRow) => { setEditing(job); const { id: _id, posted_at: _posted, ...form } = job; setJobForm(form); setJobDialog(true); };
+  const openNew = () => { setJobImageFile(null); setEditing(null); setJobForm({ ...EMPTY_JOB }); setJobDialog(true); };
+  const openEdit = (job: JobRow) => { setJobImageFile(null); setEditing(job); const { id: _id, posted_at: _posted, ...form } = job; setJobForm(form); setJobDialog(true); };
   const saveJob = async () => {
     if (!jobForm.title.trim() || !jobForm.location.trim() || !jobForm.description.trim()) { toast.error("Add a title, location and description."); return; }
+    if (savingJob) return;
     setSavingJob(true);
-    const result = editing ? await supabase.from("jobs").update(jobForm).eq("id", editing.id) : await supabase.from("jobs").insert(jobForm);
-    setSavingJob(false);
-    if (result.error) { toast.error("Could not save this job."); return; }
-    setJobDialog(false); toast.success(editing ? "Job updated." : "Job created."); await loadAll();
+    const images = supabase.storage.from(JOB_IMAGE_BUCKET);
+    let uploadedPath: string | undefined;
+    try {
+      if (jobImageFile) {
+        const extension = JOB_IMAGE_TYPES[jobImageFile.type];
+        if (!extension || jobImageFile.size < 1 || jobImageFile.size > JOB_IMAGE_LIMIT) {
+          toast.error("Choose a JPEG, PNG or WebP image up to 5 MB.");
+          return;
+        }
+        const path = `${crypto.randomUUID()}.${extension}`;
+        const { error } = await images.upload(path, jobImageFile);
+        if (error) {
+          toast.error("Could not upload the image. Please try again.");
+          return;
+        }
+        uploadedPath = path;
+      }
+
+      const record = { ...jobForm, image_path: uploadedPath ?? jobForm.image_path };
+      const query = editing
+        ? supabase.from("jobs").update(record).eq("id", editing.id)
+        : supabase.from("jobs").insert(record);
+      const { error } = await query.select("id").single();
+      if (error) throw error;
+
+      const previousPath = editing?.image_path;
+      setJobDialog(false);
+      toast.success(editing ? "Job updated." : "Job created.");
+      if (previousPath && previousPath !== record.image_path) {
+        void images.remove([previousPath]);
+      }
+      await loadAll();
+    } catch {
+      if (uploadedPath) void images.remove([uploadedPath]);
+      toast.error("Could not save this job.");
+    } finally {
+      setSavingJob(false);
+    }
   };
   const toggleJob = async (job: JobRow) => {
     const { error } = await supabase.from("jobs").update({ is_published: !job.is_published }).eq("id", job.id);
@@ -129,6 +166,7 @@ function AdminDashboard() {
     try {
       const { error } = await supabase.from("jobs").delete().eq("id", jobToDelete.id);
       if (error) throw error;
+      if (jobToDelete.image_path) void supabase.storage.from(JOB_IMAGE_BUCKET).remove([jobToDelete.image_path]);
       setJobToDelete(null);
       toast.success("Job deleted.");
       await loadAll();
@@ -305,7 +343,21 @@ function AdminDashboard() {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-    <Dialog open={jobDialog} onOpenChange={setJobDialog}><DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle className="font-heading">{editing ? "Edit job" : "Add a job"}</DialogTitle></DialogHeader><div className="grid gap-4 sm:grid-cols-2"><Field label="Job title"><Input value={jobForm.title} onChange={(event) => setJobForm({ ...jobForm, title: event.target.value })} /></Field><Field label="Category"><select className="fawzie-input" value={jobForm.category} onChange={(event) => setJobForm({ ...jobForm, category: event.target.value })}>{CATEGORIES.map((category) => <option key={category}>{category}</option>)}</select></Field><Field label="Location"><Input value={jobForm.location} onChange={(event) => setJobForm({ ...jobForm, location: event.target.value })} /></Field><Field label="Country"><Input value={jobForm.country} onChange={(event) => setJobForm({ ...jobForm, country: event.target.value })} /></Field><Field label="Job type"><select className="fawzie-input" value={jobForm.job_type} onChange={(event) => setJobForm({ ...jobForm, job_type: event.target.value })}><option>Kenya</option><option>Overseas</option></select></Field><Field label="Employer"><Input value={jobForm.employer} onChange={(event) => setJobForm({ ...jobForm, employer: event.target.value })} /></Field><Field label="Currency"><Input value={jobForm.currency} onChange={(event) => setJobForm({ ...jobForm, currency: event.target.value })} /></Field><Field label="Minimum salary"><Input type="number" value={jobForm.salary_min ?? ""} onChange={(event) => setJobForm({ ...jobForm, salary_min: event.target.value ? Number(event.target.value) : null })} /></Field><Field label="Maximum salary"><Input type="number" value={jobForm.salary_max ?? ""} onChange={(event) => setJobForm({ ...jobForm, salary_max: event.target.value ? Number(event.target.value) : null })} /></Field><div className="sm:col-span-2"><Field label="Description"><Textarea rows={5} value={jobForm.description} onChange={(event) => setJobForm({ ...jobForm, description: event.target.value })} /></Field></div><div className="sm:col-span-2"><Field label="Requirements"><Textarea rows={3} value={jobForm.requirements} onChange={(event) => setJobForm({ ...jobForm, requirements: event.target.value })} /></Field></div><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={jobForm.is_published} onChange={(event) => setJobForm({ ...jobForm, is_published: event.target.checked })} className="size-4 accent-primary" />Published</label><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={jobForm.is_sample} onChange={(event) => setJobForm({ ...jobForm, is_sample: event.target.checked })} className="size-4 accent-primary" />Sample listing</label></div><DialogFooter><Button variant="outline" onClick={() => setJobDialog(false)}>Cancel</Button><Button disabled={savingJob} onClick={() => void saveJob()}>{savingJob ? "Saving…" : "Save job"}</Button></DialogFooter></DialogContent></Dialog>
+    <Dialog open={jobDialog} onOpenChange={(open) => { if (!savingJob) setJobDialog(open); }}><DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-2xl"><DialogHeader><DialogTitle className="font-heading">{editing ? "Edit job" : "Add a job"}</DialogTitle></DialogHeader><div className="grid gap-4 sm:grid-cols-2"><Field label="Job title"><Input value={jobForm.title} onChange={(event) => setJobForm({ ...jobForm, title: event.target.value })} /></Field><Field label="Category"><select className="fawzie-input" value={jobForm.category} onChange={(event) => setJobForm({ ...jobForm, category: event.target.value })}>{CATEGORIES.map((category) => <option key={category}>{category}</option>)}</select></Field><Field label="Location"><Input value={jobForm.location} onChange={(event) => setJobForm({ ...jobForm, location: event.target.value })} /></Field><Field label="Country"><Input value={jobForm.country} onChange={(event) => setJobForm({ ...jobForm, country: event.target.value })} /></Field><Field label="Job type"><select className="fawzie-input" value={jobForm.job_type} onChange={(event) => setJobForm({ ...jobForm, job_type: event.target.value })}><option>Kenya</option><option>Overseas</option></select></Field><Field label="Employer"><Input value={jobForm.employer} onChange={(event) => setJobForm({ ...jobForm, employer: event.target.value })} /></Field><Field label="Currency"><Input value={jobForm.currency} onChange={(event) => setJobForm({ ...jobForm, currency: event.target.value })} /></Field><Field label="Minimum salary"><Input type="number" value={jobForm.salary_min ?? ""} onChange={(event) => setJobForm({ ...jobForm, salary_min: event.target.value ? Number(event.target.value) : null })} /></Field><Field label="Maximum salary"><Input type="number" value={jobForm.salary_max ?? ""} onChange={(event) => setJobForm({ ...jobForm, salary_max: event.target.value ? Number(event.target.value) : null })} /></Field><div className="sm:col-span-2"><Field label="Description"><Textarea rows={5} value={jobForm.description} onChange={(event) => setJobForm({ ...jobForm, description: event.target.value })} /></Field></div><div className="sm:col-span-2"><Field label="Requirements"><Textarea rows={3} value={jobForm.requirements} onChange={(event) => setJobForm({ ...jobForm, requirements: event.target.value })} /></Field></div><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={jobForm.is_published} onChange={(event) => setJobForm({ ...jobForm, is_published: event.target.checked })} className="size-4 accent-primary" />Published</label><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={jobForm.is_sample} onChange={(event) => setJobForm({ ...jobForm, is_sample: event.target.checked })} className="size-4 accent-primary" />Sample listing</label></div><div className="space-y-2">
+      <Label htmlFor="job-supporting-image">Supporting image (optional)</Label>
+      {jobForm.image_path && !jobImageFile && <JobImage path={jobForm.image_path} className="h-32 max-w-full rounded-md object-contain" />}
+      <Input
+        key={editing?.id ?? "new-job"}
+        id="job-supporting-image"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        aria-describedby="job-image-hint"
+        disabled={savingJob}
+        onChange={(event) => setJobImageFile(event.target.files?.[0] ?? null)}
+      />
+      <p id="job-image-hint" className="text-xs text-muted-foreground">JPEG, PNG or WebP up to 5 MB.</p>
+      {jobForm.image_path && <Button type="button" size="sm" variant="outline" disabled={savingJob} onClick={() => setJobForm((form) => ({ ...form, image_path: null }))}>Remove current image</Button>}
+    </div><DialogFooter><Button variant="outline" disabled={savingJob} onClick={() => setJobDialog(false)}>Cancel</Button><Button disabled={savingJob} onClick={() => void saveJob()}>{savingJob ? "Saving…" : "Save job"}</Button></DialogFooter></DialogContent></Dialog>
   </>;
 }
 

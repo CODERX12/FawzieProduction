@@ -244,6 +244,7 @@ export type Database = {
           currency: string
           description: string
           employer: string
+          image_path: string | null
           id: string
           is_published: boolean
           is_sample: boolean
@@ -261,6 +262,7 @@ export type Database = {
           currency?: string
           description: string
           employer?: string
+          image_path?: string | null
           id?: string
           is_published?: boolean
           is_sample?: boolean
@@ -278,6 +280,7 @@ export type Database = {
           currency?: string
           description?: string
           employer?: string
+          image_path?: string | null
           id?: string
           is_published?: boolean
           is_sample?: boolean

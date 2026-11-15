@@ -28,6 +28,7 @@ export const PRIVACY_COPY = "I agree to the privacy notice and consent to Fawzie
 
 export type Language = "en" | "sw" | "ar";
 export type Job = {
+  image_path: string | null;
   id: string;
   title: string;
   category: string;
